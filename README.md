@@ -1,7 +1,48 @@
 # DSStoreKit
 
+This package is a backup for the `AppDMG` package, whose main function is to parse and modify the undocumented `.DS_Store` files in the Mac operating system.
+
+## Installation
+
+```
+
+```
+
+## How to use
+
+### import `DSStoreKit`
+```swift
+import DSStoreKit
+``` 
+
+### Create a DS\_Store
+
+```swift
+var dsStore = DSStore.create()
+
+// make changes
+// ...
+
+try dsStore.save(to: ...)
+```
+
+### Read a .DS\_Store file
+
+```swift 
+let dsStore = try DSStore(url: ...)
+// or
+// let dsStore = try DSStore(path: ...)
+
+print(dsStore)
+
+```
+
+## Roadmap
 
 
+
+## See also
+- AppDMG
 
 
 ## Acknowledgment
