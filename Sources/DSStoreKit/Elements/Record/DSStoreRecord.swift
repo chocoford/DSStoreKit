@@ -2,7 +2,7 @@
 //  File.swift
 //  
 //
-//  Created by Dove Zachary on 2023/12/5.
+//  Created by Chocoford on 2023/12/5.
 //
 
 import Foundation
@@ -23,6 +23,11 @@ protocol DSStoreRecord: Hashable {
 }
 
 extension DSStoreRecord {
+    typealias Key = String
+    var key: Key {
+        self.type.rawValue + self.name
+    }
+    
     func makeBuffer() throws -> [UInt8] {
         var buffer: [UInt8] = []
 

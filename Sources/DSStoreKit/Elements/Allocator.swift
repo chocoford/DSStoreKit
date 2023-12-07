@@ -1,38 +1,30 @@
-/*******************************************************************************
- * The MIT License (MIT)
- * 
- * Copyright (c) 2021 Jean-David Gadina - www.xs-labs.com
- * 
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- * 
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- * 
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
- ******************************************************************************/
+//
+//  Allocator.swift
+//
+//
+//  Created by Chocoford on 2023/12/1.
+//
 
 import Foundation
 
+public enum DirectoryName: String {
+    case DSDB
+}
+
 public struct Allocator {
     public var blocks = [(offset: UInt32, size: UInt32)]()
-    public var directories = [(name: String, id: UInt32)]()
+    public var directories = [(name: DirectoryName, id: UInt32)]()
     public var freeList = [[UInt32]]()
     
     // dump
     var _unnamed1: UInt32
     
-    internal init(blocks: [(offset: UInt32, size: UInt32)] = [(offset: UInt32, size: UInt32)](), directories: [(name: String, id: UInt32)] = [(name: String, id: UInt32)](), freeList: [[UInt32]] = [[UInt32]](), _unnamed1: UInt32) {
+    internal init(
+        blocks: [(offset: UInt32, size: UInt32)] = [(offset: UInt32, size: UInt32)](),
+        directories: [(name: DirectoryName, id: UInt32)] = [(name: DirectoryName, id: UInt32)](),
+        freeList: [[UInt32]] = [[UInt32]](),
+        _unnamed1: UInt32
+    ) {
         self.blocks = blocks
         self.directories = directories
         self.freeList = freeList
@@ -76,7 +68,11 @@ public struct Allocator {
             let id = data.readInteger(at: offset, as: UInt32.self, endianness: .big)
             offset += MemoryLayout<UInt32>.size
 
-            self.directories.append((name: name, id: id))
+            guard let dirName = DirectoryName(rawValue: name) else {
+                throw DSStoreError(message: "Unknown directory name - \(name)")
+            }
+            
+            self.directories.append((name: dirName, id: id))
         }
         
         // Read FreeList
@@ -94,7 +90,7 @@ public struct Allocator {
     static func create() -> Allocator {
         Allocator(
             blocks: [(offset: 8192, size: 2048), (offset: 64, size: 32), (offset: 4096, size: 4096)],
-            directories: [(name: "DSDB", id: 1)], 
+            directories: [(name: .DSDB, id: 1)],
             freeList: [
                 [], [], [], [], [], [32, 96], [], [128], [256], [512], [1024], [2048, 10240], [12288], [], [16384], [32768], [65536], [131072], [262144], [524288], [1048576], [2097152], [4194304], [8388608], [16777216], [33554432], [67108864], [134217728], [268435456], [536870912], [1073741824], []
             ],
@@ -135,9 +131,9 @@ public struct Allocator {
         for directory in directories {
             // name length
             buffer.append(
-                contentsOf: UInt8(directory.name.count).toBytes(endianness: .big)
+                contentsOf: UInt8(directory.name.rawValue.count).toBytes(endianness: .big)
             )
-            guard let data = directory.name.data(using: .utf8) else {
+            guard let data = directory.name.rawValue.data(using: .utf8) else {
                 throw DSStoreError(message: "Invalid directory name")
             }
             buffer.append(
@@ -197,61 +193,5 @@ extension Allocator: Hashable {
         hasher.combine(directories.map({$0.name}))
         hasher.combine(directories.map({$0.id}))
         hasher.combine(freeList)
-    }
-}
-
-struct Allocator_Old {
-    public private(set) var blocks = [(offset: UInt32, size: UInt32)]()
-    public private(set) var directories = [(name: String, id: UInt32)]()
-    public private(set) var freeList = [[UInt32]]()
-    
-    public init(stream: BinaryStream, header: Header_Old) throws {
-        try stream.seek(offset: size_t(header.offset1) + 4, from: .begin)
-        
-        let n = try stream.readUInt32(endianness: .big)
-        
-        try stream.seek(offset: 4, from: .current)
-        
-        for _ in 0 ..< n {
-            self.blocks.append(Allocator.decodeOffsetAndSize(try stream.readUInt32(endianness: .big)))
-        }
-        
-        let remaining = 256 - (n % 256)
-        
-        try stream.seek(offset: size_t(remaining * 4), from: .current)
-        
-        try self.readDirectories(stream: stream)
-        try self.readFreeList(stream: stream)
-    }
-    
-    private mutating func readDirectories(stream: BinaryStream) throws {
-        let n = try stream.readUInt32(endianness: .big)
-        
-        for _ in 0 ..< n {
-            let name = try stream.readString(length: size_t(try stream.readUInt8()), encoding: .utf8) ?? ""
-            let id = try stream.readUInt32(endianness: .big)
-            
-            self.directories.append((name: name, id: id))
-        }
-    }
-    
-    private mutating func readFreeList(stream: BinaryStream) throws {
-        for _ in 0 ..< 32 {
-            let n      = try stream.readUInt32(endianness: .big)
-            var values = [UInt32]()
-            
-            for _ in 0 ..< n {
-                values.append(try stream.readUInt32(endianness: .big))
-            }
-            
-            self.freeList.append(values)
-        }
-    }
-    
-    public static func decodeOffsetAndSize(_ value: UInt32) -> (offset: UInt32, size: UInt32) {
-        let offset: UInt32 = value & ~0x1F
-        let size: UInt32 = 1 << (value & 0x1F)
-        
-        return (offset: offset, size: size)
     }
 }

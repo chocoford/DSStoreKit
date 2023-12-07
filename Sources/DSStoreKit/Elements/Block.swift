@@ -28,7 +28,7 @@ public struct Block {
     public var id: UInt32
     public var mode: UInt32
     public var children: [Block]  = []
-    public var records: [Record] = []
+    public var records: [Record.Key : Record] = [:]
     
 //    public private(set) var start: Int
 //    public private(set) var length: Int
@@ -36,9 +36,11 @@ public struct Block {
         self.id = id
         self.mode = mode
         self.children = children
-        self.records = records
+        self.records = [:]
+        for record in records {
+            self.records[record.key] = record
+        }
     }
-    
     
     public init(data: Data, id: UInt32, allocator: Allocator) throws {
         self.id = id
@@ -57,7 +59,7 @@ public struct Block {
         if self.mode == 0 {
             for _ in 0..<count {
                 let record = try Record(data: data, baseOffset: offset)
-                self.records.append(record)
+                self.records[record.key] = record
                 offset += record.length
             }
         } else {
@@ -65,11 +67,23 @@ public struct Block {
                 let blockID = data.readInteger(at: offset, as: UInt32.self, endianness: .big)
                 offset += MemoryLayout<UInt32>.size
                 self.children.append(try Block(data: data, id: blockID, allocator: allocator))
-                self.records.append(try Record(data: data, baseOffset: offset))
+                let record = try Record(data: data, baseOffset: offset)
+                self.records.updateValue(record, forKey: record.key)
             }
         }
 //        self.length = offset - self.start
     }
+    
+    internal var sortedRecords: [Record] {
+        records.values
+        .sorted(by: {
+            $0.structureType.rawValue < $1.structureType.rawValue
+        })
+        .sorted(by: {
+            $0.name.lowercased() < $1.name.lowercased()
+        })
+    }
+    
     
     func constructBuffer(allocator: Allocator) throws -> [BufferConstruction] {
         var constructions: [BufferConstruction] = []
@@ -85,7 +99,8 @@ public struct Block {
             buffer.append(
                 contentsOf: UInt32(self.records.count).toBytes(endianness: .big)
             )
-            for record in records {
+            
+            for record in sortedRecords {
                 try buffer.append(
                     contentsOf: record.makeBuffer()
                 )
@@ -107,7 +122,7 @@ public struct Block {
         return constructions
     }
     
-    
+
     static func create() -> Block {
         Block(id: 2, mode: 0, children: [], records: [])
     }
@@ -115,47 +130,3 @@ public struct Block {
 
 extension Block: Hashable {}
 
-
-struct Block_Old {
-    public private(set) var id: UInt32
-    public private(set) var mode: UInt32
-    public private(set) var children: [Block_Old]  = []
-    public private(set) var records: [Record_Old] = []
-    
-    public init(stream: BinaryStream, id: UInt32, allocator: Allocator_Old) throws
-    {
-        self.id = id
-        
-        if id >= allocator.blocks.count || id > Int.max
-        {
-            throw DSStoreError(message: "Invalid directory ID")
-        }
-        
-        let (offset, _) = allocator.blocks[Int(id)]
-        
-        try stream.seek(offset: size_t(offset + 4), from: .begin)
-        
-        self.mode = try stream.readUInt32(endianness: .big)
-        let count = try stream.readUInt32(endianness: .big)
-        
-        if self.mode == 0
-        {
-            for _ in 0 ..< count
-            {
-                self.records.append(try Record_Old(stream: stream))
-            }
-        }
-        else
-        {
-            for _ in 0 ..< count
-            {
-                let blockID = try stream.readUInt32(endianness: .big)
-                let pos     = stream.tell()
-                
-                self.children.append(try Block_Old(stream: stream, id: blockID, allocator: allocator))
-                try stream.seek(offset: pos, from: .begin)
-                self.records.append(try Record_Old(stream: stream))
-            }
-        }
-    }
-}

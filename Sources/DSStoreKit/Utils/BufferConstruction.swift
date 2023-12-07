@@ -2,7 +2,7 @@
 //  File.swift
 //  
 //
-//  Created by Dove Zachary on 2023/12/4.
+//  Created by Chocoford on 2023/12/4.
 //
 
 import Foundation
@@ -47,11 +47,11 @@ extension [BufferConstruction] {
             if construction.end > data.count {
                 data.append(contentsOf: [UInt8].init(repeating: 0, count: construction.end - data.count))
             }
-            print("apply buffer to data, range: ", construction.start..<construction.end)
-            print("from")
-            print([UInt8](data[construction.start..<construction.end]))
-            print("to")
-            print(construction.buffer)
+//            print("apply buffer to data, range: ", construction.start..<construction.end)
+//            print("from")
+//            print([UInt8](data[construction.start..<construction.end]))
+//            print("to")
+//            print(construction.buffer)
             data[construction.start..<construction.end] = Data(construction.buffer)
         }
     }

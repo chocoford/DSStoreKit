@@ -2,7 +2,7 @@
 //  File.swift
 //  
 //
-//  Created by Dove Zachary on 2023/12/5.
+//  Created by Chocoford on 2023/12/5.
 //
 
 import Foundation
@@ -13,19 +13,7 @@ extension CGPoint: Hashable {
         case x
         case y
     }
-    
-//    public func encode(to encoder: Encoder) throws {
-//        var container = encoder.container(keyedBy: CodingKeys.self)
-//        try container.encode(x, forKey: .x)
-//        try container.encode(y, forKey: .y)
-//    }
-//    
-//    public init(from decoder: Decoder) throws {
-//        var container = try decoder.container(keyedBy: CodingKeys.self)
-//        self.x = try container.decode(Double.self, forKey: .x)
-//        self.y = try container.decode(Double.self, forKey: .y)
-//    }
-//    
+
     public static func == (lhs: CGPoint, rhs: CGPoint) -> Bool {
         lhs.x == rhs.x &&
         lhs.y == rhs.y
