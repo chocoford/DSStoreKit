@@ -56,7 +56,6 @@ extension Data {
     
     func readString(at offset: Int, length: Int, encoding: String.Encoding) -> String? {
         let bytes = self.readIntegers(at: offset, count: length, as: UInt8.self, endianness: .big)
-//        print("readString, bytes: \(bytes)")
         return String(bytes: bytes, encoding: encoding)
     }
 }

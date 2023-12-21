@@ -47,7 +47,6 @@ final class DSStoreKitTests: XCTestCase {
             constructions.applyToData(data: &newData)
             let newDSStore = try DSStore(data: newData)
             
-            print(directory == newDSStore.directories[name])
             XCTAssertEqual(directory, newDSStore.directories[name])
             
             

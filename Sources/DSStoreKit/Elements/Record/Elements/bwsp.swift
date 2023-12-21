@@ -110,8 +110,6 @@ extension Record {
         public var start: Int
         
         init(name: String, type: RecordStructureType, dataType: RecordDataType, data: Data, length: Int, start: Int) throws {
-            try print(PropertyListSerialization.propertyList(from: data, format: nil))
-
             self.name = name
             self.type = type
             self.dataType = dataType

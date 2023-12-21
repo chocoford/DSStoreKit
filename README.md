@@ -1,19 +1,40 @@
 # DSStoreKit
 
-This package is a backup for the `AppDMG` package, whose main function is to parse and modify the undocumented `.DS_Store` files in the Mac operating system.
+This package is a backup for the [`AppDMG`](https://github.com/chocoford/AppDMG) package, whose main function is to parse and modify the undocumented `.DS_Store` files in the Mac operating system.
 
 ## Installation
 
+#### Package.swift
+
+```swift
+let package = Package(
+    ...
+    dependencies: [
+        .package(url: "https://github.com/chocoford/DSStoreKit.git", branch: "main")
+    ],
+    targets: [
+        .target(
+						...
+            dependencies: [
+								...
+                "DSStoreKit"
+            ],
+            ...
+        )
+    ]
+)
 ```
 
-```
+#### Xcode project
+
+`Menubar` - `File` - `Add Package Dependencies...` - type and search `https://github.com/chocoford/DSStoreKit.git`
 
 ## How to use
 
 ### import `DSStoreKit`
 ```swift
 import DSStoreKit
-``` 
+```
 
 ### Create a DS\_Store
 
@@ -42,7 +63,7 @@ print(dsStore)
 
 
 ## See also
-- AppDMG
+- [AppDMG](https://github.com/chocoford/AppDMG) - A swift package that enables creating DMG files programmatically.
 
 
 ## Acknowledgment

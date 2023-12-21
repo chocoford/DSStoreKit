@@ -79,7 +79,6 @@ extension Record {
                 UInt32(iconPos.y).toBytes(endianness: .big),
                 [255, 255, 255, 0,0,0,0,0].map{UInt8($0)}
             ].flatMap({$0}))
-            print(data.count)
             return try IlocRecord(name: name, type: .Iloc, dataType: .blob, data: data, length: 0, start: 0)
         }
         
