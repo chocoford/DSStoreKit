@@ -1,4 +1,5 @@
 # DSStoreKit
+![GitHub License](https://img.shields.io/github/license/chocoford/DSStoreKit) ![X (formerly Twitter) Follow](https://img.shields.io/twitter/follow/dove_zachary?label=Chocoford)
 
 This package is a backup for the [`AppDMG`](https://github.com/chocoford/AppDMG) package, whose main function is to parse and modify the undocumented `.DS_Store` files in the Mac operating system.
 
@@ -14,9 +15,9 @@ let package = Package(
     ],
     targets: [
         .target(
-						...
+            ...
             dependencies: [
-								...
+		...
                 "DSStoreKit"
             ],
             ...
