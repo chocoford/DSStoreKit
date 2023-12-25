@@ -8,12 +8,28 @@ final class DSStoreKitTests: XCTestCase {
     }   
     
     func testDSStore() throws {
-//        let dsStoreOld = try DSStore_Old(url: URL(string: "file:///Users/chocoford/Developer/DSStoreKit/Tests/DS_Store")!)
-        let dsStore = try DSStore(url: URL(string: "file:///Users/chocoford/Developer/DSStoreKit/Tests/DS_Store")!)
-//        let dsStore = try DSStore(url: URL(string: "file:///Users/chocoford/Developer/DSStoreKit/Tests/DSStore-clean")!)
-//        let dsStore = try DSStore(url: URL(string: "file:///Volumes/Trickle Capture Test 0.1.19 RC 2(18)/.DS_Store")!)
-        dump(dsStore)
         
+//        let dsStoreOld = try DSStore_Old(url: URL(string: "file:///Users/chocoford/Developer/DSStoreKit/Tests/DS_Store")!)
+//        let dsStore = try DSStore(url: URL(string: "file:///Users/chocoford/Developer/DSStoreKit/Tests/DS_Store")!)
+//        let dsStore = try DSStore(url: URL(string: "file:///Users/chocoford/Developer/DSStoreKit/Tests/DSStore-clean")!)
+        let dsStore = try DSStore(url: URL(string: "file:///Volumes/Trickle Capture Test/.DS_Store")!)
+        
+        dump(dsStore)
+        if let values = dsStore.directories.values.first?.rootNode.records.values {
+            for record in values {
+                switch record {
+                    case .icvp(let data):
+                        if let data = data.value.backgroundImageAlias {
+                            print((try? JSONSerialization.jsonObject(with: data)) ?? "nil")
+                        }
+                    default:
+                        break
+                }
+            }
+        }
+//        let imgURL = URL(string: "file:///Volumes/Trickle Capture Test/.background/dmg-background.tiff")!
+//        let bookmarkData = try imgURL.bookmarkData(options: .suitableForBookmarkFile)
+//        dump(try JSONSerialization.jsonObject(with: bookmarkData), name: "bookmarkData")
         
 //        XCTAssertEqual(dsStore, DSStore.create())
     }
@@ -124,13 +140,18 @@ final class DSStoreKitTests: XCTestCase {
         dsStore.insertRecord(.vSrn(.general()))
         try dsStore.insertRecord(.icvp(.createNew(value: .init())))
         try dsStore.insertRecord(.bwsp(.createNew(value: .init(
-            containerShowSidebar: false, showPathbar: false, showSidebar: false,
-            showStatusBar: false, showTabView: false, showToolbar: false, windowBounds: CGRect(origin: .zero, size: .init(width: 400, height: 400))
+            containerShowSidebar: false, 
+            showPathbar: false,
+            showSidebar: false,
+            showStatusBar: false, 
+            showTabView: false, 
+            showToolbar: false,
+            windowBounds: CGRect(origin: .zero, size: .init(width: 400, height: 400))
         ))))
         try dsStore.save()
         
-        dump(try DSStore(data: dsStore.data))
-//        try newDSStore.save(to: URL(string: "file:///Users/chocoford/Developer/DSStoreKit/Tests/TestFolder/TestCreate/.DS_Store")!)
+//        dump(try DSStore(data: dsStore.data))
+        try dsStore.save(to: URL(string: "file:///Users/chocoford/Developer/DSStoreKit/Tests/TestFolder/TestCreate/.DS_Store")!)
     }
     
     func testRecordOrder() throws {
