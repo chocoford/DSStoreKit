@@ -74,7 +74,6 @@ extension Record {
         
         func encodeValue() throws -> [UInt8] {
             let encoder = PropertyListEncoder()
-//            encoder.outputFormat = .binary
             let data = try encoder.encode(self.value)
             return [
                 UInt32(data.count).toBytes(endianness: .big),
@@ -84,7 +83,6 @@ extension Record {
         
         public static func createNew(value: Value) throws -> icvpRecord {
             let encoder = PropertyListEncoder()
-//            encoder.outputFormat = .binary
             let data = try encoder.encode(value)
             return try icvpRecord(name: ".", type: .icvp, dataType: .blob, data: data, length: 0, start: 0)
         }
@@ -387,16 +385,3 @@ extension Record {
     }
     
 }
-
-//func createAlias(for fileURL: URL, at aliasURL: URL) -> Bool {
-//    do {
-//        let bookmarkData = try fileURL.bookmarkData(options: .suitableForBookmarkFile,
-//                                                    includingResourceValuesForKeys: nil,
-//                                                    relativeTo: nil)
-//        try URL.writeBookmarkData(bookmarkData, to: aliasURL)
-//        return true
-//    } catch {
-//        print("Error creating alias: \(error)")
-//        return false
-//    }
-//}
